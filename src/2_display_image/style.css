@@ -1,0 +1,60 @@
+@import "../../node_modules/@jappyjan/even-realities-ui/dist/even-realities-ui.css";
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  background: #f5f5f5;
+}
+
+.container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#imageInput {
+  padding: 8px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.info {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.status {
+  margin: 0;
+  padding: 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status.connected {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.error {
+  background: #ffebee;
+  color: #c62828;
+}

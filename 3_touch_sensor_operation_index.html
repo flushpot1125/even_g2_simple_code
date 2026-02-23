@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>G2 Touch Sensor Operation</title>
+  <link rel="stylesheet" href="/src/3_touch_sensor_operation/style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1>G2 Touch Sensor Operation</h1>
+      <p class="description">G2のタッチセンサー操作を検出します</p>
+      <div class="info-area">
+        <p class="status" id="status">Waiting for connection...</p>
+        <div class="event-log">
+          <h2>Event Log</h2>
+          <div id="eventLog" class="log-content">イベント待機中...</div>
+        </div>
+        <div class="instructions">
+          <h3>操作方法</h3>
+          <ul>
+            <li><strong>Single Click:</strong> グラスのテンプル部分を1回タップ</li>
+            <li><strong>Double Click:</strong> グラスのテンプル部分を2回タップ</li>
+            <li><strong>Scroll:</strong> グラスのテンプル部分を上下にスワイプ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/3_touch_sensor_operation/main.ts"></script>
+</body>
+</html>

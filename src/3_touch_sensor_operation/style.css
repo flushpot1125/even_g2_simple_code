@@ -1,0 +1,128 @@
+@import "../../node_modules/@jappyjan/even-realities-ui/dist/even-realities-ui.css";
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  background: #f5f5f5;
+}
+
+.container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.description {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.info-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.status {
+  margin: 0;
+  padding: 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status.connected {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.event-log {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.event-log h2 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.log-content {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.log-entry {
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-entry .timestamp {
+  color: #999;
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+.log-entry .event-type {
+  color: #1976d2;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.instructions {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.instructions h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #1565c0;
+}
+
+.instructions ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.instructions li {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.instructions strong {
+  color: #1976d2;
+}

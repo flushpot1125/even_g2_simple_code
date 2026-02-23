@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Display Image</title>
+  <link rel="stylesheet" href="/src/2_display_image/style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1>Display Image</h1>
+      <div class="upload-area">
+        <label for="imageInput" style="display: block; margin-bottom: 8px; font-weight: 500;">Choose Image:</label>
+        <input type="file" id="imageInput" accept="image/*" />
+        <p class="info">Select an image to display on G2 glasses</p>
+        <p class="status" id="status">Waiting for connection...</p>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/2_display_image/main.ts"></script>
+</body>
+</html>
