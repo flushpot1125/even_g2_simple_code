@@ -52,6 +52,10 @@ npm run simulator "http://localhost:5173/2_display_image_index.html?simulator=tr
 
 ![](./Pictures_forReadme/2_display_image.jpg)
 
+補足：  
+- スマートフォンから読み込む画像の解像度には制約がないようでした  
+- Even G2側には200px x 100pxの領域にしないと表示されませんでした    
+- jpg, bmpのどちらも表示できました  
 
 ```bash
 npm run simulator "http://localhost:5173/3_touch_sensor_operation_index.html?simulator=true"
@@ -120,9 +124,6 @@ npm rebuild @evenrealities/evenhub-simulator
 - [even-dev (開発環境)](https://github.com/BxNxM/even-dev)  
 
 
-## Known Issues
-
-2026/2/23時点では、2_display_imageが正しく動作していません。
 
 ## 補足
 
