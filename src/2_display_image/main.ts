@@ -21,7 +21,89 @@ function updateStatus(message: string, type: 'info' | 'success' | 'error' = 'inf
   }
 }
 
-// 画像を200x100以下にリサイズし、グレースケールPNGに変換
+// 1ビットモノクロBMPのヘッダーサイズとパラメータ
+const BMP_HEADER_SIZE = 62
+const BMP_SIGNATURE = [0x42, 0x4D] // "BM"
+const BMP_DIB_HEADER_SIZE = 40
+const BMP_BITS_PER_PIXEL = 1
+const BMP_COMPRESSION = 0
+const BMP_COLORS_USED = 2
+const BMP_PPM = 2835 // pixels per meter (72 DPI)
+
+// BMPの行ストライド（4バイト境界にアライン）
+function getBmpRowStride(width: number): number {
+  return Math.floor((width + 31) / 32) * 4
+}
+
+// BMPピクセルデータサイズ
+function getBmpPixelDataSize(width: number, height: number): number {
+  return getBmpRowStride(width) * height
+}
+
+// BMP全体のファイルサイズ
+function getBmpFileSize(width: number, height: number): number {
+  return BMP_HEADER_SIZE + getBmpPixelDataSize(width, height)
+}
+
+// 1ビットモノクロBMPバッファを初期化
+function initBmpBuffer(width: number, height: number): Uint8Array {
+  const fileSize = getBmpFileSize(width, height)
+  const buf = new ArrayBuffer(fileSize)
+  const view = new DataView(buf)
+  const data = new Uint8Array(buf)
+  
+  // BMPファイルヘッダー
+  view.setUint8(0, BMP_SIGNATURE[0]) // 'B'
+  view.setUint8(1, BMP_SIGNATURE[1]) // 'M'
+  view.setUint32(2, fileSize, true) // ファイルサイズ
+  view.setUint16(6, 0, true) // 予約領域1
+  view.setUint16(8, 0, true) // 予約領域2
+  view.setUint32(10, BMP_HEADER_SIZE, true) // ピクセルデータのオフセット
+  
+  // DIBヘッダー (BITMAPINFOHEADER)
+  view.setUint32(14, BMP_DIB_HEADER_SIZE, true) // DIBヘッダーサイズ
+  view.setInt32(18, width, true) // 画像幅
+  view.setInt32(22, height, true) // 画像高さ
+  view.setUint16(26, 1, true) // カラープレーン数
+  view.setUint16(28, BMP_BITS_PER_PIXEL, true) // ビット深度
+  view.setUint32(30, BMP_COMPRESSION, true) // 圧縮方式（0=無圧縮）
+  view.setUint32(34, getBmpPixelDataSize(width, height), true) // 画像データサイズ
+  view.setInt32(38, BMP_PPM, true) // 水平解像度
+  view.setInt32(42, BMP_PPM, true) // 垂直解像度
+  view.setUint32(46, BMP_COLORS_USED, true) // カラーパレット数
+  view.setUint32(50, 0, true) // 重要な色数（0=全て）
+  
+  // カラーパレット（2色：黒と白）
+  // 色0: 黒 (R=0, G=0, B=0, A=0)
+  view.setUint32(54, 0x00000000, true)
+  // 色1: 白 (R=255, G=255, B=255, A=0)
+  view.setUint32(58, 0x00FFFFFF, true)
+  
+  return data
+}
+
+// ピクセルデータ（0または1の配列）を1ビットBMPにエンコード
+// pixels: width * height の配列、0=黒、1=白
+function encodeBmpPixels(bmpBuffer: Uint8Array, pixels: Uint8Array, width: number, height: number): void {
+  const rowStride = getBmpRowStride(width)
+  bmpBuffer.fill(0, BMP_HEADER_SIZE)
+  
+  for (let y = 0; y < height; y++) {
+    // BMPは下から上に格納されるため、行を反転
+    const srcRow = height - 1 - y
+    const dstOffset = BMP_HEADER_SIZE + y * rowStride
+    
+    for (let x = 0; x < width; x++) {
+      if (pixels[srcRow * width + x]) {
+        const byteIdx = dstOffset + Math.floor(x / 8)
+        const bitIdx = 7 - (x % 8)
+        bmpBuffer[byteIdx] |= 1 << bitIdx
+      }
+    }
+  }
+}
+
+// 画像を200x100の1ビットモノクロBMPに変換（常に200x100のサイズで出力）
 async function processImage(file: File): Promise<number[]> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -32,24 +114,29 @@ async function processImage(file: File): Promise<number[]> {
     }
     
     img.onload = () => {
-      // G2の画像コンテナの最大サイズは200x100
-      const maxWidth = 200
-      const maxHeight = 100
+      // G2の画像コンテナのサイズに固定（200x100）
+      const targetWidth = 200
+      const targetHeight = 100
       
-      let width = img.width
-      let height = img.height
+      let srcWidth = img.width
+      let srcHeight = img.height
       
-      // アスペクト比を保持してリサイズ
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height)
-        width = Math.floor(width * ratio)
-        height = Math.floor(height * ratio)
-      }
+      // アスペクト比を保持してリサイズ計算
+      const ratio = Math.min(targetWidth / srcWidth, targetHeight / srcHeight)
+      const scaledWidth = Math.floor(srcWidth * ratio)
+      const scaledHeight = Math.floor(srcHeight * ratio)
       
-      // Canvasで画像を描画
+      // 中央配置のためのオフセット
+      const offsetX = Math.floor((targetWidth - scaledWidth) / 2)
+      const offsetY = Math.floor((targetHeight - scaledHeight) / 2)
+      
+      console.log(`[Image] Original: ${srcWidth}x${srcHeight}, Scaled: ${scaledWidth}x${scaledHeight}, Target: ${targetWidth}x${targetHeight}`)
+      console.log(`[Image] Offset: (${offsetX}, ${offsetY})`)
+      
+      // Canvasで画像を描画（200x100固定サイズ）
       const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
+      canvas.width = targetWidth
+      canvas.height = targetHeight
       const ctx = canvas.getContext('2d')
       
       if (!ctx) {
@@ -57,34 +144,36 @@ async function processImage(file: File): Promise<number[]> {
         return
       }
       
-      // グレースケールに変換
-      ctx.drawImage(img, 0, 0, width, height)
-      const imageData = ctx.getImageData(0, 0, width, height)
+      // 背景を白で塗りつぶし（二値化後に白になる）
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, targetWidth, targetHeight)
+      
+      // 画像を中央に描画
+      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight)
+      const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight)
       const data = imageData.data
+      
+      // グレースケールに変換し、閾値で二値化（0または1）
+      const pixels = new Uint8Array(targetWidth * targetHeight)
+      const threshold = 128 // 二値化の閾値
       
       for (let i = 0; i < data.length; i += 4) {
         // BT.601 luminance formula
         const gray = Math.floor(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2])
-        data[i] = gray
-        data[i + 1] = gray
-        data[i + 2] = gray
+        const pixelIdx = i / 4
+        // 閾値より明るければ1（白）、暗ければ0（黒）
+        pixels[pixelIdx] = gray >= threshold ? 1 : 0
       }
       
-      ctx.putImageData(imageData, 0, 0)
+      // 1ビットモノクロBMPにエンコード（200x100固定）
+      const bmpBuffer = initBmpBuffer(targetWidth, targetHeight)
+      encodeBmpPixels(bmpBuffer, pixels, targetWidth, targetHeight)
       
-      // PNGとしてエンコード
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error('Failed to create blob'))
-          return
-        }
-        
-        // Blobをnumber[]に変換
-        blob.arrayBuffer().then(buffer => {
-          const bytes = Array.from(new Uint8Array(buffer))
-          resolve(bytes)
-        })
-      }, 'image/png')
+      console.log(`[Image] BMP size: ${bmpBuffer.length} bytes (${targetWidth}x${targetHeight})`)
+      
+      // number[]として返す
+      const bytes = Array.from(bmpBuffer)
+      resolve(bytes)
     }
     
     img.onerror = () => reject(new Error('Failed to load image'))
